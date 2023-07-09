@@ -5,7 +5,7 @@ void setup() {
   setupBle();
 }
 
-void loop() {
+void loop() {  
   // Read
   int statusVal = 1;
   if (!mpuRead()) {

@@ -75,11 +75,21 @@ bool bleRead() {
   return conn;
 }
 
+unsigned long lastBleWrite = millis();
+const long bleWriteInterval = 100;
+
 void bleWrite(float latV, float lngV, int statusV) {
+  unsigned long currentTime = millis();
+  if (currentTime - lastBleWrite <= bleWriteInterval) {
+    return;
+  }
+  lastBleWrite = currentTime;
+  
   msgJson["lat"] = latV;
   msgJson["lng"] = lngV;
   msgJson["status"] = statusV;
   serializeJson(msgJson, Serial2);
+  Serial2.println("");
 }
 
 float bleLat() {
