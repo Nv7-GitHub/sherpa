@@ -26,7 +26,7 @@ void loop() {
   }
 
   // BLE sending
-  bleWrite(lat(), lng(), 1);*/
+  bleWrite(lat(), lng(), 1);
 
   // Log
   Serial.print("yaw:");
