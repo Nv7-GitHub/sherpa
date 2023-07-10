@@ -16,8 +16,7 @@ void setupMotors() {
 
 int targetYaw;
 int distance;
-unsigned long lastRefresh = millis();
-const int refreshInterval = 1000;
+bool needRefresh = true;
 
 void refreshTargets() {
   // Calculate distances
@@ -31,10 +30,9 @@ void refreshTargets() {
 
 void move() {
     // Refresh
-    unsigned long currentTime = millis();
-    if (currentTime - lastRefresh > refreshInterval) {
+    if (needRefresh) {
       refreshTargets();
-      lastRefresh = currentTime;
+      needRefresh = false;
     }
     if (distance < 10) {
       motor_l.write(0);

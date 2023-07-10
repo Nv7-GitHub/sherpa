@@ -17,6 +17,10 @@ bool gpsRead() {
     return false;
   }
 
+  if (gps.location.isUpdated()) {
+    needRefresh = true;
+  }
+
   return true;
 }
 
