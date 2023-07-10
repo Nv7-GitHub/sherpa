@@ -27,6 +27,7 @@ void setupBle() {
 }
 
 bool conn = false;
+bool hasPos = false;
 
 String msg_buff = "";
 StaticJsonDocument<64> msgJson; // Size generated with https://arduinojson.org/v6/assistant/
@@ -70,6 +71,7 @@ bool bleRead() {
           Serial.print(F("deserializeJson() failed: "));
           Serial.println(error.f_str());
         }
+        hasPos = true;
         msg_buff = "";
       }
     }
@@ -96,15 +98,21 @@ void bleWrite(float latV, float lngV, int statusV) {
 }
 
 float bleLat() {
-  return msgJson["lat"];
+  //return msgJson["lat"];
+  return 0.05;
 }
 
 
 float bleLng() {
-  return msgJson["lng"];
+  //return msgJson["lng"];
+  return 0.05;
 }
 
 
 int bleStatus() {
   return msgJson["status"];
+}
+
+bool hasPhonePos() {
+  return hasPos;
 }

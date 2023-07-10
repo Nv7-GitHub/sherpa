@@ -1,8 +1,10 @@
 void setup() {
   Serial.begin(9600);
+  setupMotors();
   setupMpu();
   setupGps();
   setupBle();
+  delay(5000);
 }
 
 void loop() {  
@@ -28,13 +30,18 @@ void loop() {
   // BLE sending
   bleWrite(lat(), lng(), 1);
 
+  // Drive
+  if (hasPhonePos()) {
+    move();
+  }
+
   // Log
   /*Serial.print("yaw:");
-  Serial.print(yaw()*RAD_TO_DEG);
+  Serial.print(yaw());
   Serial.print(",pitch:");
-  Serial.print(pitch()*RAD_TO_DEG);
+  Serial.print(pitch());
   Serial.print(",roll:");
-  Serial.print(roll()*RAD_TO_DEG);
+  Serial.print(roll());
   
   Serial.print(",accelx:");
   Serial.print(accelx());

@@ -60,16 +60,16 @@ void readAccel() {
 }
 
 // Read methods
-float yaw() {
-  return ypr[0];
+int yaw() {
+  return (int)(ypr[0] * RAD_TO_DEG) % 360;
 }
 
-float pitch() {
-  return ypr[1];
+int pitch() {
+  return (int)(ypr[1] * RAD_TO_DEG) % 360;
 }
 
-float roll() {
-  return ypr[2];
+int roll() {
+  return (int)(ypr[2] * RAD_TO_DEG) % 360;
 }
 
 float accelx() {
