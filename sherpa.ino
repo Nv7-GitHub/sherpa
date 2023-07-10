@@ -29,7 +29,7 @@ void loop() {
   bleWrite(lat(), lng(), 1);
 
   // Log
-  Serial.print("yaw:");
+  /*Serial.print("yaw:");
   Serial.print(yaw()*RAD_TO_DEG);
   Serial.print(",pitch:");
   Serial.print(pitch()*RAD_TO_DEG);
@@ -61,5 +61,5 @@ void loop() {
   Serial.print(",bleStatus:");
   Serial.print(bleStatus());
 
-  Serial.println("");
+  Serial.println("")*/;
 }

@@ -1,9 +1,13 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SherpaPage extends StatefulWidget {
   const SherpaPage({super.key});
@@ -26,8 +30,8 @@ class _SherpaPageState extends State<SherpaPage> {
 
   // Ble data
   int bleStatus = 0;
-  int bleLat = 0;
-  int bleLng = 0;
+  double bleLat = 0;
+  double bleLng = 0;
 
   // Listener
   String buff = "";
@@ -38,10 +42,29 @@ class _SherpaPageState extends State<SherpaPage> {
       Map<String, dynamic> data = jsonDecode(buff.trim());
       buff = "";
       setState(() {
-        bleLat = data["lat"];
-        bleLng = data["lng"];
         bleStatus = data["status"];
+        if (bleStatus == 1) {
+          bleLat = (data["lat"] as num).toDouble();
+          bleLng = (data["lng"] as num).toDouble();
+          writeBle();
+        }
       });
+    }
+  }
+
+  // Writer
+  void writeBle() async {
+    Position pos = await Geolocator.getCurrentPosition();
+    Map<String, dynamic> data = {
+      "lat": pos.latitude,
+      "lng": pos.longitude,
+      "status": 1,
+    };
+    String msg = "${jsonEncode(data)}\n";
+    for (int i = 0; i < msg.length; i += 20) {
+      await characteristic.write(
+          utf8.encode(msg.substring(i, min(i + 20, msg.length))),
+          withoutResponse: true);
     }
   }
 
@@ -116,7 +139,7 @@ class _SherpaPageState extends State<SherpaPage> {
   @override
   void dispose() {
     super.dispose();
-    if (Status != Status.searching) {
+    if (status != Status.searching) {
       device.disconnect();
     }
   }
@@ -163,7 +186,31 @@ class _SherpaPageState extends State<SherpaPage> {
             );
 
           case 1:
-            return const Text("Successfully connected!");
+            return FlutterMap(
+              options: MapOptions(),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+                  subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                  maxZoom: 20,
+                ),
+                CurrentLocationLayer(
+                  followOnLocationUpdate: FollowOnLocationUpdate.once,
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: LatLng(bleLat, bleLng),
+                      width: 20,
+                      height: 20,
+                      builder: (context) => const DefaultLocationMarker(
+                          color: CupertinoColors.activeOrange),
+                    )
+                  ],
+                )
+              ],
+            );
 
           case 2:
             return const Column(

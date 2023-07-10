@@ -16,6 +16,8 @@ bool gpsRead() {
   if (satCount() < 3 || alt() == 0) {
     return false;
   }
+
+  return true;
 }
 
 // Read methods

@@ -59,14 +59,17 @@ String ble_cmd(String cmd_str,String desc_str){
 bool bleRead() {
   while (Serial2.available()) {
     char c = Serial2.read();
-    Serial.println(c);
     msg_buff += c;
     if (c == '\n') { // End of message
       if (msg_buff == "CONN\n") { // Connection
         conn = true;
         msg_buff = "";
       } else { // Json value
-        deserializeJson(msgJson, msg_buff);
+        DeserializationError error = deserializeJson(msgJson, msg_buff);
+        if (error) {
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.f_str());
+        }
         msg_buff = "";
       }
     }
@@ -76,7 +79,7 @@ bool bleRead() {
 }
 
 unsigned long lastBleWrite = millis();
-const long bleWriteInterval = 100;
+const long bleWriteInterval = 250;
 
 void bleWrite(float latV, float lngV, int statusV) {
   unsigned long currentTime = millis();
