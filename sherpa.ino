@@ -8,7 +8,7 @@ void setup() {
 }
 
 void loop() {  
-  // Read
+  // Read sensors
   int statusVal = 1;
   if (!mpuRead()) {
     Serial.println("MPU READ FAIL");
@@ -27,6 +27,9 @@ void loop() {
     return;
   }
 
+  // Position estimation
+  predictPositions();
+
   // BLE sending
   bleWrite(lat(), lng(), 1);
 
@@ -41,7 +44,7 @@ void loop() {
   Serial.print(",pitch:");
   Serial.print(pitch());
   Serial.print(",roll:");
-  Serial.print(roll());
+  Serial.print(roll());*/
   
   Serial.print(",accelx:");
   Serial.print(accelx());
@@ -50,7 +53,7 @@ void loop() {
   Serial.print(",accelz:");
   Serial.print(accelz());
 
-  Serial.print(",latitude:");
+  /*Serial.print(",latitude:");
   Serial.print(lat());
   Serial.print(",longitude:");
   Serial.print(lng());
@@ -59,14 +62,19 @@ void loop() {
   Serial.print(",course:");
   Serial.print(course());
   Serial.print(",satCount:");
-  Serial.print(satCount());
+  Serial.print(satCount());*/
 
-  Serial.print(",bleLat:");
+  /*Serial.print(",bleLat:");
   Serial.print(bleLat());
   Serial.print(",bleLng:");
   Serial.print(bleLng());
   Serial.print(",bleStatus:");
-  Serial.print(bleStatus());
+  Serial.print(bleStatus())*/;
 
-  Serial.println("")*/;
+  Serial.print("predictedLat:");
+  Serial.print(predictedLat());
+  Serial.print("predictedLng:");
+  Serial.print(predictedLng());
+  
+  Serial.println("");
 }

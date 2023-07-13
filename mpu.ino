@@ -11,11 +11,10 @@ MPU6050 mpu;
 uint8_t fifoBuffer[64]; // FIFO storage buffer
 Quaternion q;           // [w, x, y, z]         quaternion container
 VectorInt16 aa;         // [x, y, z]            accel sensor measurements
-VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
 
 // Values
-VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
+VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 // Code
@@ -51,12 +50,10 @@ void readYpr() {
 }
 
 void readAccel() {
-  // Gets world-relative accel
   mpu.dmpGetQuaternion(&q, fifoBuffer);
   mpu.dmpGetAccel(&aa, fifoBuffer);
   mpu.dmpGetGravity(&gravity, &q);
   mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-  mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 }
 
 // Read methods
@@ -72,14 +69,25 @@ int roll() {
   return (int)(ypr[2] * RAD_TO_DEG) % 360;
 }
 
+const float accelFactor = (float)(16384) / 9.80665;
+/* 
+use 9.8 value to convert from gs to m/s^2, find first value through trial and error and below values: 
+  
+±2g, = (4) we need to use 2 bits 11b for the whole number and the remaining 14 for precision so divide by 16384 or 11 1111 1111 1111b
+±4g, = (8) we need to use 3 bits 111b for the whole number and the remaining 13 for precision so divide by 8192 or 1 1111 1111 1111b
+±8g, = (16) we need to use 4 bits 1111b for the whole number and the remaining 12 for precision so divide by 4096 or 1111 1111 1111b
+±16g. = (32) we need to use 5 bits 11111b for the whole number and the remaining 11 for precision so divide by 2048 or 111 1111 1111b
+ */
+
+// These return m/s^2
 float accelx() {
-  return aaWorld.x;
+  return aaReal.x/accelFactor;
 }
 
 float accely() {
-  return aaWorld.y;
+  return aaReal.y/accelFactor;
 }
 
 float accelz() {
-  return aaWorld.z;
+  return aaReal.z/accelFactor;
 }
