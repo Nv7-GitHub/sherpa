@@ -3,7 +3,7 @@ void setup() {
   setupMotors();
   setupMpu();
   setupGps();
-  setupBle();
+  //setupBle();
   delay(5000);
 }
 
@@ -46,12 +46,12 @@ void loop() {
   Serial.print(",roll:");
   Serial.print(roll());*/
   
-  Serial.print(",accelx:");
+  /*Serial.print(",accelx:");
   Serial.print(accelx());
   Serial.print(",accely:");
   Serial.print(accely());
   Serial.print(",accelz:");
-  Serial.print(accelz());
+  Serial.print(accelz());*/
 
   /*Serial.print(",latitude:");
   Serial.print(lat());
@@ -71,10 +71,12 @@ void loop() {
   Serial.print(",bleStatus:");
   Serial.print(bleStatus())*/;
 
-  Serial.print("predictedLat:");
-  Serial.print(predictedLat());
-  Serial.print("predictedLng:");
-  Serial.print(predictedLng());
+  /*Serial.print(",predictedLat:");
+  Serial.print(predictedLat()*111111.0);
+  Serial.print(",predictedLng:");
+  Serial.print(predictedLng()*111111.0);
+  Serial.print(",predictedCourse:");
+  Serial.print(predictedCourse());*/
   
   Serial.println("");
 }

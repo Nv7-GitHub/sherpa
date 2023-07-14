@@ -25,8 +25,8 @@ void setupMpu() {
   mpu.dmpInitialize();
 
   // MPU Calibrate
-  mpu.CalibrateAccel(6);
-  mpu.CalibrateGyro(6);
+  mpu.CalibrateAccel(60);
+  mpu.CalibrateGyro(60);
   mpu.PrintActiveOffsets();
   mpu.setDMPEnabled(true);
 }
@@ -69,7 +69,7 @@ int roll() {
   return (int)(ypr[2] * RAD_TO_DEG) % 360;
 }
 
-const float accelFactor = (float)(16384) / 9.80665;
+const float accelFactor = (float)(8192) / 9.80665;
 /* 
 use 9.8 value to convert from gs to m/s^2, find first value through trial and error and below values: 
   
