@@ -1,3 +1,5 @@
+#if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA)
+
 // Connect mpu to SDA, SCL, GND, VCC
 
 #include <I2Cdev.h>
@@ -57,17 +59,17 @@ void readAccel() {
 }
 
 // Read methods
-int yaw() {
+float yaw() {
   return (int)(ypr[0] * RAD_TO_DEG) % 360;
 }
 
-int pitch() {
+/*int pitch() {
   return (int)(ypr[1] * RAD_TO_DEG) % 360;
 }
 
 int roll() {
   return (int)(ypr[2] * RAD_TO_DEG) % 360;
-}
+}*/
 
 const float accelFactor = (float)(8192) / 9.80665;
 /* 
@@ -88,6 +90,7 @@ float accely() {
   return aaReal.y/accelFactor;
 }
 
-float accelz() {
+/*float accelz() {
   return aaReal.z/accelFactor;
-}
+}*/
+#endif
