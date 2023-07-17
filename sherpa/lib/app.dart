@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -26,16 +27,24 @@ class _SherpaPageState extends State<SherpaPage> {
   final ble = FlutterBluePlus.instance;
   Status status = Status.searching;
   late BluetoothDevice device;
-  late BluetoothCharacteristic characteristic;
+  late BluetoothCharacteristic megaCharacteristic;
+
+  // Nano
+  late BluetoothCharacteristic gpsCharacteristic;
+  late BluetoothCharacteristic statusCharacteristic;
+  Guid gpsUuid = Guid("f731ae25-0001-4677-9604-4a75debdaad0");
+  Guid statusUuid = Guid("f731ae25-0002-4677-9604-4a75debdaad0");
 
   // Ble data
+  bool mega = false;
   int bleStatus = 0;
   double bleLat = 0;
   double bleLng = 0;
+  double bleHeading = 0;
 
   // Listener
   String buff = "";
-  void listener(List<int> value) {
+  void listenerMega(List<int> value) {
     String msg = const Utf8Decoder().convert(value);
     buff += msg.trim();
     if (msg.endsWith("\n")) {
@@ -46,31 +55,68 @@ class _SherpaPageState extends State<SherpaPage> {
         if (bleStatus == 1) {
           bleLat = (data["lat"] as num).toDouble();
           bleLng = (data["lng"] as num).toDouble();
-          writeBle();
+          bleHeading = (data["heading"] as num).toDouble();
+          writeBleMega();
         }
       });
     }
   }
 
   // Writer
-  void writeBle() async {
+  void writeBleMega() async {
     Position pos = await Geolocator.getCurrentPosition();
     Map<String, dynamic> data = {
       "lat": pos.latitude,
       "lng": pos.longitude,
+      "heading": pos.heading,
       "status": 1,
     };
     String msg = "${jsonEncode(data)}\n";
     for (int i = 0; i < msg.length; i += 20) {
-      await characteristic.write(
+      await megaCharacteristic.write(
           utf8.encode(msg.substring(i, min(i + 20, msg.length))),
           withoutResponse: true);
     }
   }
 
+  void gpsListener(List<int> value) {
+    final bytes = Uint8List.fromList(value);
+    final byteData = ByteData.sublistView(bytes);
+    for (var i = 0; i < bytes.length; i += 4) {
+      double value = byteData.getFloat32(i);
+      if (i == 0) {
+        bleLat = value;
+      } else if (i == 4) {
+        bleLng = value;
+      } else if (i == 8) {
+        bleHeading = value;
+      }
+    }
+
+    // Write data
+    gpsWrite();
+  }
+
+  void gpsWrite() async {
+    Position pos = await Geolocator.getCurrentPosition();
+    final data =
+        Float32List.fromList([pos.latitude, pos.longitude, pos.heading]);
+    final bytes = data.buffer.asUint8List();
+    gpsCharacteristic.write(bytes.toList(), withoutResponse: true);
+  }
+
+  void statusListener(List<int> value) {
+    bleStatus = value[0];
+    statusCharacteristic.write([1], withoutResponse: true);
+  }
+
   Future<bool> checkDevice(BluetoothDevice d, bool alreadyConnected) async {
-    if (d.name == "Sherpa" && status == Status.searching) {
+    if (d.name.startsWith("Sherpa") && status == Status.searching) {
       ble.stopScan();
+
+      if (d.name == "SherpaM") {
+        mega = true; // Connected to arduino MEGA
+      }
 
       setState(() {
         status = Status.connecting;
@@ -82,27 +128,49 @@ class _SherpaPageState extends State<SherpaPage> {
       }
 
       // Discover services
-      List<BluetoothService> services = await d.discoverServices();
-      for (BluetoothService service in services) {
-        List<BluetoothCharacteristic> characteristics = service.characteristics;
-        for (BluetoothCharacteristic c in characteristics) {
-          if (c.properties.write &&
-              c.properties.writeWithoutResponse &&
-              c.properties.read &&
-              c.properties.notify) {
-            await c.write(utf8.encode("CONN\n"),
-                withoutResponse: true); // CONNECT MESSAGE
-            await c.setNotifyValue(true);
+      if (mega) {
+        List<BluetoothService> services = await d.discoverServices();
+        for (BluetoothService service in services) {
+          List<BluetoothCharacteristic> characteristics =
+              service.characteristics;
+          for (BluetoothCharacteristic c in characteristics) {
+            if (c.properties.write &&
+                c.properties.writeWithoutResponse &&
+                c.properties.read &&
+                c.properties.notify) {
+              await c.write(utf8.encode("CONN\n"),
+                  withoutResponse: true); // CONNECT MESSAGE
+              await c.setNotifyValue(true);
 
-            setState(() {
-              status = Status.connected;
-              characteristic = c;
-              c.value.listen(listener);
-            });
+              setState(() {
+                status = Status.connected;
+                megaCharacteristic = c;
+                c.value.listen(listenerMega);
+              });
 
-            return true;
+              return true;
+            }
           }
         }
+      } else {
+        List<BluetoothService> services = await d.discoverServices();
+        for (BluetoothService service in services) {
+          List<BluetoothCharacteristic> characteristics =
+              service.characteristics;
+          for (BluetoothCharacteristic c in characteristics) {
+            if (c.uuid == gpsUuid) {
+              gpsCharacteristic = c;
+            } else {
+              statusCharacteristic = c;
+            }
+          }
+        }
+
+        setState(() {
+          status = Status.connected;
+          gpsCharacteristic.value.listen(gpsListener);
+          statusCharacteristic.value.listen(statusListener);
+        });
       }
     }
 
@@ -173,15 +241,15 @@ class _SherpaPageState extends State<SherpaPage> {
       case Status.connected:
         switch (bleStatus) {
           case 0:
-            return const Column(
+            return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Spacer(flex: 20),
-                Icon(CupertinoIcons.exclamationmark_circle,
+                const Spacer(flex: 20),
+                const Icon(CupertinoIcons.exclamationmark_circle,
                     color: CupertinoColors.systemRed, size: 40),
-                Spacer(),
-                Text("JSON Parse Fail"),
-                Spacer(flex: 20),
+                const Spacer(),
+                Text(mega ? "JSON Parse Fail" : "No data received"),
+                const Spacer(flex: 20),
               ],
             );
 
