@@ -16,20 +16,28 @@ void setupMpu() {
 
 
 float ax, ay, az;
-float mx, my, mz;
+//float mx, my, mz;
 float gx, gy, gz;
 
 bool mpuRead() {
-  if (!IMU.gyroscopeAvailable()) {return false;}
+  /*if (!IMU.gyroscopeAvailable()) {return false;}
   if (!IMU.accelerationAvailable()) {return false;}
-  if (!IMU.magneticFieldAvailable()) {return false;}
-
-  IMU.readGyroscope(gx, gy, gz);
-  IMU.readAcceleration(ax, ay, az);
-  IMU.readMagneticField(mx, my, mz);
+  if (!IMU.magneticFieldAvailable()) {return false;}*/
+  if (!IMU.readGyroscope(gx, gy, gz)) {return false;}
+  if (!IMU.readAcceleration(ax, ay, az))  {return false;}
+  //if (!IMU.readMagneticField(mx, my, mz)) {return false;}
+  
 
   // Filter
-  filter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
+  //filter.update(gx, gy, gz, ax, ay, az, my, mz, mx);
+  filter.updateIMU(gx, gy, gz, ax, ay, az);
+  ax += 0.02;
+  ay += 0.01;
+  az += 0.01;
+  gx -= 0.3;
+  gy += 0;
+  gz += 0.6;
+  
 
   return true;
 }
@@ -40,6 +48,7 @@ float yaw() {
 
 float pitch() {
   return filter.getPitch();
+
 }
 
 float roll() {
@@ -47,15 +56,15 @@ float roll() {
 }
 
 float accelx() {
-  return ax;
+  return ax*9.807;
 }
 
 float accely() {
-  return ay;
+  return ay*9.807;
 }
 
 float accelz() {
-  return az;
+  return az*9.807;
 }
 
 #endif
