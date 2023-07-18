@@ -10,19 +10,30 @@ BLEByteCharacteristic statusCharacteristic(BLE_UUID("0002"), BLERead | BLEWrite 
 void onGpsWrite(BLEDevice central, BLECharacteristic characteristic);
 void onStatusWrite(BLEDevice central, BLECharacteristic characteristic);
 
-void setupBle() {
+void setupBle() {  
   if (!BLE.begin()) {
     Serial.println("Failed to initialize BLE");
   }
   BLE.setLocalName("SherpaN");
+  BLE.setDeviceName("SherpaN");
   BLE.setAdvertisedService(service);
   service.addCharacteristic(gpsCharacteristic);
   gpsCharacteristic.setEventHandler(BLEWritten, onGpsWrite);
   service.addCharacteristic(statusCharacteristic);
   statusCharacteristic.setEventHandler(BLEWritten, onStatusWrite);
-  
+  statusCharacteristic.writeValue(1);
+  float gps[3] = { 0, 0, 0 };
+  gpsCharacteristic.writeValue(gps, sizeof(gps));
+   
   BLE.addService(service);
   BLE.advertise();
+
+  Serial.println("ADVERTISING");
+
+  Serial.print("BLE ADDRESS: ");
+  Serial.println(BLE.address());
+  delay(1000);
+    
 }
 
 int bleStatusVal;
@@ -53,6 +64,8 @@ bool bleRead() {
   if (!BLE.connected()) {
     return false;
   }
+
+  return true;
 }
 
 void onGpsWrite(BLEDevice central, BLECharacteristic characteristic) {
