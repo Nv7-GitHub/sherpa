@@ -93,6 +93,12 @@ class _SherpaPageState extends State<SherpaPage> {
       }
     }
 
+    setState(() {
+      bleLat = bleLat;
+      bleLng = bleLng;
+      bleHeading = bleHeading;
+    });
+
     // Write data
     gpsWrite();
   }
@@ -102,12 +108,14 @@ class _SherpaPageState extends State<SherpaPage> {
     final data =
         Float32List.fromList([pos.latitude, pos.longitude, pos.heading]);
     final bytes = data.buffer.asUint8List();
-    gpsCharacteristic.write(bytes.toList(), withoutResponse: true);
+    await gpsCharacteristic.write(bytes.toList());
+    await statusCharacteristic.write([1]);
   }
 
   void statusListener(List<int> value) {
-    bleStatus = value[0];
-    statusCharacteristic.write([1], withoutResponse: true);
+    setState(() {
+      bleStatus = value[0];
+    });
   }
 
   Future<bool> checkDevice(BluetoothDevice d, bool alreadyConnected) async {
@@ -160,8 +168,10 @@ class _SherpaPageState extends State<SherpaPage> {
           for (BluetoothCharacteristic c in characteristics) {
             if (c.uuid == gpsUuid) {
               gpsCharacteristic = c;
-            } else {
+              await c.setNotifyValue(true);
+            } else if (c.uuid == statusUuid) {
               statusCharacteristic = c;
+              await c.setNotifyValue(true);
             }
           }
         }
@@ -170,6 +180,7 @@ class _SherpaPageState extends State<SherpaPage> {
           status = Status.connected;
           gpsCharacteristic.value.listen(gpsListener);
           statusCharacteristic.value.listen(statusListener);
+          statusCharacteristic.write([3]); // Waiting for GPS lock
         });
       }
     }
@@ -179,6 +190,7 @@ class _SherpaPageState extends State<SherpaPage> {
 
   Future<void> init() async {
     await Permission.bluetoothScan.request();
+    await Permission.locationWhenInUse.request();
 
     // Check if connected device
     for (BluetoothDevice d in await ble.connectedDevices) {

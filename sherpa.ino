@@ -1,8 +1,8 @@
 void setup() {
   Serial.begin(9600);
-  setupMotors();
+  //setupMotors();
   setupMpu();
-  setupGps();
+  //setupGps();
   setupBle();
   delay(5000);
 }
@@ -14,10 +14,10 @@ void loop() {
     Serial.println("MPU READ FAIL");
     statusVal = BLE_STATUS_IMUFAIL();
   }
-  if (!gpsRead()) {
+  /*if (!gpsRead()) {
     Serial.println("GPS READ FAIL");
     statusVal = BLE_STATUS_GPSFAIL();
-  }
+  }*/
   if (!bleRead()) {
     Serial.println("BLE NOT CONNECTED");
     return;
@@ -34,24 +34,24 @@ void loop() {
   bleWriteOk();
 
   // Drive
-  if (hasPhonePos()) {
+  /*if (hasPhonePos()) {
     move();
-  }
+  }*/
 
   // Log
-  Serial.print("yaw:");
+  /*Serial.print("yaw:");
   Serial.print(yaw());
   Serial.print(",pitch:");
   Serial.print(pitch());
   Serial.print(",roll:");
-  Serial.print(roll());
+  Serial.print(roll());*/
   
-  Serial.print(",accelx:");
+  /*Serial.print(",accelx:");
   Serial.print(accelx());
   Serial.print(",accely:");
   Serial.print(accely());
   Serial.print(",accelz:");
-  Serial.print(accelz());
+  Serial.print(accelz());*/
 
   /*Serial.print(",latitude:");
   Serial.print(lat());

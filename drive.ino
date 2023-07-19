@@ -1,8 +1,8 @@
 #include <Servo.h>
 #include <TinyGPS++.h>
 
-const int MOTOR_L = 7; // Motor L PWM pin
-const int MOTOR_R = 8; // Motor R PWM pin
+const int MOTOR_L = 3; // Motor L PWM pin
+const int MOTOR_R = 5; // Motor R PWM pin
 
 Servo motor_l;
 Servo motor_r;
