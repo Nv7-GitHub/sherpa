@@ -99,7 +99,7 @@ void bleWriteOk() {
   }
   lastBleWrite = currentTime;
   statusCharacteristic.writeValue(BLE_STATUS_OK());
-  float pos[3] = { lat(), lng(), course() };
+  float pos[3] = { predictedLat(), predictedLng(), predictedCourse() };
   gpsCharacteristic.writeValue(pos, sizeof(pos));
 }
 

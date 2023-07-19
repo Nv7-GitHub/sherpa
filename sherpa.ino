@@ -1,8 +1,8 @@
 void setup() {
   Serial.begin(9600);
-  //setupMotors();
+  setupMotors();
   setupMpu();
-  //setupGps();
+  setupGps();
   setupBle();
   delay(5000);
 }
@@ -14,10 +14,10 @@ void loop() {
     Serial.println("MPU READ FAIL");
     statusVal = BLE_STATUS_IMUFAIL();
   }
-  /*if (!gpsRead()) {
+  if (!gpsRead()) {
     Serial.println("GPS READ FAIL");
     statusVal = BLE_STATUS_GPSFAIL();
-  }*/
+  }
   if (!bleRead()) {
     Serial.println("BLE NOT CONNECTED");
     return;
@@ -64,12 +64,12 @@ void loop() {
   Serial.print(",satCount:");
   Serial.print(satCount());*/
 
-  Serial.print(",bleLat:");
+  /*Serial.print(",bleLat:");
   Serial.print(bleLat());
   Serial.print(",bleLng:");
   Serial.print(bleLng());
   Serial.print(",bleStatus:");
-  Serial.print(bleStatus());
+  Serial.print(bleStatus());*/
 
   /*Serial.print(",predictedLat:");
   Serial.print(predictedLat()*111111.0);
@@ -78,5 +78,5 @@ void loop() {
   Serial.print(",predictedCourse:");
   Serial.print(predictedCourse());*/
   
-  Serial.println("");
+  //Serial.println("");
 }
